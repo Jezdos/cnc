@@ -14,14 +14,14 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     private IMqttClient? _mqttClient;
     private MqttClientOptions? _channelOptions;
 
-    private readonly long _linkId = linkId;
-    private readonly string _clientId = clientId ?? $"Client_{SnowflakeIdWorker.Singleton.nextId()}";
-    private readonly string _server = server;
-    private readonly int _port = port;
+    public readonly long _linkId = linkId;
+    public readonly string _clientId = clientId ?? $"Client_{SnowflakeIdWorker.Singleton.nextId()}";
+    public readonly string _server = server;
+    public readonly int _port = port;
 
-    private readonly string _username = username ?? "";
-    private readonly string _password = password ?? "";
-    private readonly int _keepAliveSeconds = keepAliveSeconds ?? 10;
+    public readonly string _username = username ?? "";
+    public readonly string _password = password ?? "";
+    public readonly int _keepAliveSeconds = keepAliveSeconds ?? 10;
 
     public event EventHandler<ConnectStatus>? _ConnectionStatusChanged;
     public event EventHandler<ConnectStatus>? ConnectionStatusChanged
@@ -143,7 +143,7 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
             logger.DebugFormat("client: {0} Connected failed, cause {1}", _clientId, e.ConnectResult.ReasonString);
         }
 
-        ConnectionStatusChanged?.Invoke(this, base.Status);
+        _ConnectionStatusChanged?.Invoke(this, base.Status);
         return Task.CompletedTask;
     }
 
@@ -151,7 +151,7 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     {
         base.ChangeStatus(ConnectStatus.DISCONNECT);
         logger.DebugFormat("client: {0} Disconnected, cause : {1}", _clientId, e.Reason);
-        ConnectionStatusChanged?.Invoke(this, base.Status);
+        _ConnectionStatusChanged?.Invoke(this, base.Status);
 
         if (e.ClientWasConnected)
         {
@@ -167,7 +167,7 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
             ? Encoding.UTF8.GetString(e.ApplicationMessage.Payload)
             : string.Empty;
         logger.DebugFormat("client: {0} receive message : {1}", _clientId, payload);
-        MessageProcess?.Invoke(this, (e.ApplicationMessage.Topic, payload));
+        _MessageProcess?.Invoke(this, (e.ApplicationMessage.Topic, payload));
         return Task.CompletedTask;
     }
 
