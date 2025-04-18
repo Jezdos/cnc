@@ -1,0 +1,104 @@
+﻿<UserControl x:Class="APP.Views.Forms.LinkFormView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:UI.Tools.Behavior;assembly=common-ui"
+             xmlns:converters="clr-namespace:UI.Tools.Converters;assembly=common-ui"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:local="clr-namespace:APP.Views.Forms"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             d:DesignHeight="650"
+             d:DesignWidth="600"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:BaseNullZeroConverter x:Key="BaseNullZeroConverter" />
+    </UserControl.Resources>
+
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Padding="15,15" Background="White">
+            <StackPanel>
+                <TextBlock Margin="0,10,0,20" HorizontalAlignment="Left" FontSize="24" FontWeight="Medium" Text="编辑 Mqtt-Broker 节点" />
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="名称:" />
+                    <ui:TextBox Width="420" PlaceholderText="Mqtt-Broker 节点名称" Text="{Binding ViewModel.Name}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Host:" />
+                        <ui:TextBox Width="200" materialDesign:ValidationAssist.UsePopup="True" PlaceholderText="127.0.0.1" Text="{Binding ViewModel.Host}" />
+                    </StackPanel>
+                    <StackPanel Margin="30,0" Orientation="Horizontal">
+                        <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Port:" />
+                        <ui:TextBox Width="100" PlaceholderText="1883" Text="{Binding ViewModel.Port, Converter={StaticResource BaseNullZeroConverter}}">
+                            <i:Interaction.Behaviors>
+                                <behaviors:NumericOnlyBehavior />
+                            </i:Interaction.Behaviors>
+                        </ui:TextBox>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="客户端ID:" />
+                    <ui:TextBox Width="420" PlaceholderText="Client id" Text="{Binding ViewModel.ClientId}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Keep-Alive:" />
+                    <ui:TextBox Width="420" PlaceholderText="KeepAlive计时(秒)" Text="{Binding ViewModel.KeepAlive, Converter={StaticResource BaseNullZeroConverter}}">
+                        <i:Interaction.Behaviors>
+                            <behaviors:NumericOnlyBehavior />
+                        </i:Interaction.Behaviors>
+                    </ui:TextBox>
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="用户名:" />
+                    <ui:TextBox Width="420" PlaceholderText="" Text="{Binding ViewModel.Username}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="密码:" />
+                    <ui:TextBox Width="420" PlaceholderText="" Text="{Binding ViewModel.Password}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="模式:" />
+                    <ComboBox x:Name="ModelCombo" Width="210" SelectedItem="{Binding ViewModel.Model}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        <Border Grid.Row="1" Padding="15,15" Background="{StaticResource AppBackgroundBrush}" BorderThickness="0,1,0,0">
+
+
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+
+                <ui:Button Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" CommandParameter="false">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,0,0" Padding="5,0,5,0" FontSize="14" Text="取消" />
+                    </StackPanel>
+                </ui:Button>
+
+                <GridSplitter Margin="10,0" />
+
+                <ui:Button Appearance="Primary" Command="{Binding ViewModel.SubmitCommand}" CommandParameter="true">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,0,0" Padding="5,0,5,0" FontSize="14" Text="确定" />
+                    </StackPanel>
+                </ui:Button>
+
+            </StackPanel>
+
+        </Border>
+
+    </Grid>
+
+</UserControl>
