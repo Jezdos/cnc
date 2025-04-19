@@ -34,6 +34,7 @@ namespace APP
                 _ = services.AddNavigationViewPageProvider();
                 // App Host
                 _ = services.AddHostedService<ApplicationHostService>();
+                _ = services.AddHostedService<AppInitializeService>();
 
                 // logging
                 services.AddLogging((builder) =>
@@ -63,11 +64,12 @@ namespace APP
                 _ = services.AddSingleton<ISnackbarService, SnackbarService>();
                 _ = services.AddSingleton<IContentDialogService, ContentDialogService>();
                 _ = services.AddSingleton<WindowsProviderService>();
+                _ = services.AddSingleton<FMqttClientManagement>();
 
                 _ = services.AddTransientFromNamespace("APP.Views.Pages", Assembly.GetExecutingAssembly());
                 _ = services.AddTransientFromNamespace("APP.ViewModels.Pages", Assembly.GetExecutingAssembly());
 
-                _ = services.AddHostedService<FMqttClientManagement>();
+                
             }
         )
         .Build();

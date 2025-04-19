@@ -23,21 +23,21 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     public readonly string _password = password ?? "";
     public readonly int _keepAliveSeconds = keepAliveSeconds ?? 10;
 
-    public event EventHandler<ConnectStatus>? _ConnectionStatusChanged;
-    public event EventHandler<ConnectStatus>? ConnectionStatusChanged
+    private event EventHandler<(long linkId, ConnectStatus status)> _ConnectionStatusChanged = (sender, objetc) => { };
+    public event EventHandler<(long linkId, ConnectStatus status)> ConnectionStatusChanged
     {
         add => _ConnectionStatusChanged += value;
         remove => _ConnectionStatusChanged -= value;
     }
 
-    public event EventHandler<(string Topic, string Payload)>? _MessageProcess;
+    private event EventHandler<(string Topic, string Payload)>? _MessageProcess = (sender, objetc) => { };
     public event EventHandler<(string Topic, string Payload)>? MessageProcess
     {
         add => _MessageProcess += value;
         remove => _MessageProcess -= value;
     }
 
-    public override async Task InitAsync()
+    protected override async Task InitAsync()
     {
         _channelOptions = new MqttClientOptionsBuilder().WithClientId(_clientId)
             .WithTcpServer(_server, _port)
@@ -50,8 +50,8 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
         await Task.CompletedTask;
     }
 
-    
-    public override async Task ConnectAsync()
+
+    protected override async Task ConnectAsync()
     {
         var factory = new MqttClientFactory();
         _mqttClient = factory.CreateMqttClient();
@@ -66,7 +66,7 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     private async Task AttemptConnectWithRetry()
     {
         if (_mqttClient == null) return;
-
+        if (Status == ConnectStatus.CONNECTED) base.ChangeStatus(ConnectStatus.CONNECTING);
         while (Status == ConnectStatus.CONNECTING)
         {
             try
@@ -143,19 +143,17 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
             logger.DebugFormat("client: {0} Connected failed, cause {1}", _clientId, e.ConnectResult.ReasonString);
         }
 
-        _ConnectionStatusChanged?.Invoke(this, base.Status);
+        _ConnectionStatusChanged?.Invoke(this, (_linkId, base.Status));
         return Task.CompletedTask;
     }
 
     private async Task OnDisconnected(MqttClientDisconnectedEventArgs e)
     {
-        base.ChangeStatus(ConnectStatus.DISCONNECT);
         logger.DebugFormat("client: {0} Disconnected, cause : {1}", _clientId, e.Reason);
-        _ConnectionStatusChanged?.Invoke(this, base.Status);
+        _ConnectionStatusChanged?.Invoke(this, (_linkId, base.Status));
 
         if (e.ClientWasConnected)
         {
-            base.ChangeStatus(ConnectStatus.CONNECTING);
             await AttemptConnectWithRetry();
         }
 
@@ -183,13 +181,18 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     {
         if (_mqttClient == null) return;
 
-        // 解除事件绑定
-        _mqttClient.ConnectedAsync -= OnConnected;
-        _mqttClient.DisconnectedAsync -= OnDisconnected;
-        _mqttClient.ApplicationMessageReceivedAsync -= OnApplicationMessageReceived;
+        try
+        {
+            // 解除事件绑定
+            _mqttClient.ConnectedAsync -= OnConnected;
+            _mqttClient.DisconnectedAsync -= OnDisconnected;
+            _mqttClient.ApplicationMessageReceivedAsync -= OnApplicationMessageReceived;
 
-        _mqttClient.Dispose();
-
-        GC.SuppressFinalize(this);
+            _mqttClient.Dispose();
+        }
+        catch (ObjectDisposedException) { /* 安全忽略 */ }
+        finally {
+            GC.SuppressFinalize(this);
+        }
     }
 }

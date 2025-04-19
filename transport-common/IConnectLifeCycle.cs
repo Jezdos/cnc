@@ -21,7 +21,7 @@ namespace transport_common
             }
             
         }
-        public abstract Task InitAsync();
+        protected abstract Task InitAsync();
 
 
         public async Task Connect() {
@@ -37,7 +37,7 @@ namespace transport_common
                 ObjectLock.Release();
             }
         }
-        public abstract Task ConnectAsync();
+        protected abstract Task ConnectAsync();
 
 
         public async Task Disconnect()
@@ -68,8 +68,8 @@ namespace transport_common
             await ObjectLock.WaitAsync();
             try
             {
-                await DestroyAsync();
                 ChangeStatus(ConnectStatus.DESTROY);
+                await DestroyAsync();
             }
             finally
             {
@@ -91,7 +91,6 @@ namespace transport_common
         {
             _status = status;
         }
-
 
         public Task<Object> Collection()
         {
