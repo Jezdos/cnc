@@ -72,8 +72,11 @@ namespace APP.Services
 
                 client.ConnectionStatusChanged += (linkId, status) => _ChangeActionNotice.Invoke(linkId, status);
 
-                await client.Init();
-                _ = client.Connect();
+                Task.Run(async () =>
+                {
+                    await client.Init();
+                    await client.Connect();
+                });
 
                 return client;
             }

@@ -5,9 +5,11 @@
 
 using APP.Views.Pages;
 using APP.Views.Windows;
+using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Windows;
+using Wpf.Ui.Appearance;
 
 
 namespace APP.Services
@@ -28,6 +30,7 @@ namespace APP.Services
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await HandleActivationAsync();
+            await CustomTheme();
         }
 
         /// <summary>
@@ -53,6 +56,14 @@ namespace APP.Services
             mainWindow.Loaded += OnMainWindowLoaded;
             mainWindow?.Show();
 
+            return Task.CompletedTask;
+        }
+
+
+        private Task CustomTheme() {
+            SystemThemeWatcher.UnWatch(Application.Current.MainWindow);
+            ApplicationThemeManager.ApplySystemTheme(false);
+            ApplicationThemeManager.Apply(ApplicationTheme.Light, updateAccent:false);
             return Task.CompletedTask;
         }
 
