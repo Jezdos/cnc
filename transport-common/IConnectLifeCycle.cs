@@ -1,11 +1,10 @@
-﻿using transport_common.Exceptions;
+﻿using System.Net.NetworkInformation;
+using transport_common.Exceptions;
 
 namespace transport_common
 {
     public abstract class IConnectLifeCycle : IDisposable
     {
-        public ConnectStatus Status => _status;
-
         private readonly SemaphoreSlim ObjectLock = new(1, 1); // 对象锁
 
         public async Task Init() {
@@ -83,13 +82,21 @@ namespace transport_common
             return Task.CompletedTask;
         }
 
+        
         private volatile ConnectStatus _status = ConnectStatus.NEW;
+        public ConnectStatus Status => _status;
 
         public abstract void Dispose();
 
         protected void ChangeStatus(ConnectStatus status)
         {
-            _status = status;
+            lock (this) {
+                if (status == ConnectStatus.DESTROY) _status = status;
+
+                if (Status == ConnectStatus.DESTROY || Status == ConnectStatus.DESTROY) return;
+
+                _status = status;
+            }
         }
 
         public Task<Object> Collection()
