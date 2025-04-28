@@ -1,6 +1,5 @@
 ﻿using APP.Domain;
 using Data.UnitOfWork;
-using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using transport_common;
 using Transport_MQTT;
@@ -10,16 +9,14 @@ namespace APP.Services
     public class FMqttClientManagement(IUnitOfWork unitOfWork) : IDisposable
     {
 
-        private static event EventHandler<(long linkId, ConnectStatus status)> _ChangeActionNotice = (sender, objetc) => { };
-        public static event EventHandler<(long linkId, ConnectStatus status)> ChangeActionNotice
+        private event EventHandler<(long linkId, ConnectStatus status)> _ChangeActionNotice = (sender, objetc) => { };
+        public event EventHandler<(long linkId, ConnectStatus status)> ChangeActionNotice
         {
             add { _ChangeActionNotice += value; }
             remove { _ChangeActionNotice -= value; }
         }
 
         private readonly ConcurrentDictionary<long, FMqttClient> _clients = new();
-
-        
 
         public bool IsClientConnected(long linkId) => _clients.TryGetValue(linkId, out var client) && client.Status == ConnectStatus.CONNECTED;
 
@@ -35,19 +32,22 @@ namespace APP.Services
             return false;
         }
 
-        public async Task<bool> Submit(long linkId, FMqttClient client) {
+        public async Task<bool> Submit(long linkId, FMqttClient client)
+        {
 
             this.Remove(linkId);
 
             return await Task.FromResult(_clients.TryAdd(linkId, client));
         }
-        
 
-        public bool Remove(long? linkId) {
+
+        public bool Remove(long? linkId)
+        {
             if (linkId is null) return false;
-            if ( _clients.TryRemove(linkId.Value, out FMqttClient? removedValue))
+            if (_clients.TryRemove(linkId.Value, out FMqttClient? removedValue))
             {
-                if (removedValue is not null) {
+                if (removedValue is not null)
+                {
                     removedValue.ConnectionStatusChanged -= (linkId, status) => _ChangeActionNotice.Invoke(linkId, status);
                     _ = removedValue.Destory();
                     return true;
@@ -55,11 +55,12 @@ namespace APP.Services
             }
             return false;
         }
-        
 
-        private static async Task<FMqttClient?> GenMqttClient(LinkMqtt item) {
 
-            if (item is { LinkId: not null, Host: not null, Port: not null, Model: LinkModelEnum.AUTO})
+        private async Task<FMqttClient?> GenMqttClient(LinkMqtt item)
+        {
+
+            if (item is { LinkId: not null, Host: not null, Port: not null, Model: LinkModelEnum.AUTO })
             {
                 FMqttClient client = new FMqttClient(
                             linkId: item.LinkId.Value,
@@ -89,7 +90,7 @@ namespace APP.Services
             List<LinkMqtt> list = [.. await respository.GetAllAsync()];
 
             foreach (var item in list)
-            {   
+            {
                 FMqttClient? client = await GenMqttClient(item);
                 if (client != null) await Submit(item.LinkId.Value, client);
             }

@@ -15,7 +15,7 @@ public partial class ViewModelEditor(bool autoClose = true) : ObservableValidato
             {
                 DialogHost.Close(AppConstants.DIALOG_ROOT);
             });
-        } 
+        }
     };
 
     private bool _autoClose = autoClose;
@@ -80,11 +80,12 @@ public partial class ViewModelEditor(bool autoClose = true) : ObservableValidato
         {
             await action().ContinueWith(async (var) =>
             {
-                if (_autoClose && var.Result) {
+                if (_autoClose && var.Result)
+                {
                     DEFAULT_SUCCESS_HANDLER.Invoke();
                     await Task.Delay(200);
                 }
-                
+
             });
         }
         finally

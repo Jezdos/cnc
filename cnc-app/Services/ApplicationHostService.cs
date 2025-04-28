@@ -5,7 +5,6 @@
 
 using APP.Views.Pages;
 using APP.Views.Windows;
-using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Windows;
@@ -60,10 +59,11 @@ namespace APP.Services
         }
 
 
-        private Task CustomTheme() {
+        private Task CustomTheme()
+        {
             SystemThemeWatcher.UnWatch(Application.Current.MainWindow);
             ApplicationThemeManager.ApplySystemTheme(false);
-            ApplicationThemeManager.Apply(ApplicationTheme.Light, updateAccent:false);
+            ApplicationThemeManager.Apply(ApplicationTheme.Light, updateAccent: false);
             return Task.CompletedTask;
         }
 

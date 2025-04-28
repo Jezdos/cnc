@@ -1,0 +1,77 @@
+﻿<UserControl x:Class="APP.Views.Forms.DeviceFormView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:UI.Tools.Behavior;assembly=common-ui"
+             xmlns:converters="clr-namespace:UI.Tools.Converters;assembly=common-ui"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:local="clr-namespace:APP.Views.Forms"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             d:DesignHeight="650"
+             d:DesignWidth="600"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:BaseNullZeroConverter x:Key="BaseNullZeroConverter" />
+    </UserControl.Resources>
+
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Padding="15,15" Background="White">
+            <StackPanel>
+                <TextBlock Margin="0,10,0,20" HorizontalAlignment="Left" FontSize="24" FontWeight="Medium" Text="编辑 Device 节点" />
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="名称:" />
+                    <ui:TextBox Width="420" PlaceholderText="Mqtt-Broker 节点名称" Text="{Binding ViewModel.Name}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="种类:" />
+                    <ComboBox x:Name="KindCombo" Width="210" SelectedItem="{Binding ViewModel.Kind}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,5" Orientation="Horizontal">
+                    <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="模式:" />
+                    <ComboBox x:Name="ModelCombo" Width="210" SelectedItem="{Binding ViewModel.Model}" />
+                </StackPanel>
+
+                <hc:Divider Margin="0,20">
+                    <TextBlock FontSize="10" Foreground="Gray" Text="专有属性" />
+                </hc:Divider>
+
+                <ContentControl Content="{Binding ViewModel.DynamicForm}" />
+            </StackPanel>
+
+        </Border>
+        <Border Grid.Row="1" Padding="15,15" Background="{StaticResource AppBackgroundBrush}" BorderThickness="0,1,0,0">
+
+
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+
+                <ui:Button Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" CommandParameter="false">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,0,0" Padding="5,0,5,0" FontSize="14" Text="取消" />
+                    </StackPanel>
+                </ui:Button>
+
+                <GridSplitter Margin="10,0" />
+
+                <ui:Button Appearance="Primary" Command="{Binding ViewModel.SubmitCommand}" CommandParameter="true">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,0,0" Padding="5,0,5,0" FontSize="14" Text="确定" />
+                    </StackPanel>
+                </ui:Button>
+
+            </StackPanel>
+
+        </Border>
+
+    </Grid>
+
+</UserControl>

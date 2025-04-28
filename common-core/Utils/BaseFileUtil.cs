@@ -46,7 +46,8 @@ namespace Core.Utils
             {
                 string oriFileAddress = Path.Combine(BaseFilePath, fileName);
                 if (File.Exists(oriFileAddress)) return oriFileAddress;
-            };
+            }
+            ;
             return DefaultImagePath;
         }
 

@@ -1,7 +1,5 @@
-﻿using System.Windows;
-using Wpf.Ui.Controls;
+﻿using APP.ViewModels.Windows;
 using Wpf.Ui;
-using APP.ViewModels.Windows;
 
 namespace APP.Views.Windows;
 
@@ -42,7 +40,7 @@ public partial class MainWindow
     {
         if (e.AddedItems[0] is NavigationItem item)
         {
-            if(item.Type is not null && this.IsLoaded) NavigationService.Navigate(item.Type);
+            if (item.Type is not null && this.IsLoaded) NavigationService.Navigate(item.Type);
         }
     }
 }

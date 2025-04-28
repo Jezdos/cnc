@@ -1,7 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Xml.Linq;
 
 namespace APP.Domain
 {
@@ -52,7 +50,8 @@ namespace APP.Domain
         }
     }
 
-    public enum LinkModelEnum { 
+    public enum LinkModelEnum
+    {
         AUTO, SUSPEND
     }
 }

@@ -39,11 +39,26 @@
                                        CommandParameter="{Binding}"
                                        IsChevronVisible="False">
                             <ui:CardAction.Icon>
-                                <ui:SymbolIcon Filled="True" FontSize="40" Symbol="Circle20" TextElement.Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <ui:SymbolIcon Filled="True" FontSize="40">
+                                    <ui:SymbolIcon.Style>
+                                        <Style TargetType="ui:SymbolIcon">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="NORMAL">
+                                                    <Setter Property="TextElement.Foreground" Value="{DynamicResource AppNormalColorBrush}" />
+                                                    <Setter Property="Symbol" Value="CheckmarkCircle20" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="EXCEPTION">
+                                                    <Setter Property="TextElement.Foreground" Value="{DynamicResource AppExceptionColorBrush}" />
+                                                    <Setter Property="Symbol" Value="DismissCircle20" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:SymbolIcon.Style>
+                                </ui:SymbolIcon>
                             </ui:CardAction.Icon>
                             <Grid>
                                 <StackPanel>
-                                    <ui:TextBlock FontSize="16" FontTypography="BodyStrong" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name, Mode=OneTime}" TextWrapping="Wrap" />
+                                    <ui:TextBlock FontSize="16" FontTypography="BodyStrong" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" TextWrapping="Wrap" />
                                     <ui:TextBlock Appearance="Secondary" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap">
                                         <Run FontWeight="DemiBold" Foreground="{DynamicResource AppThemeSecondaryBrush}" Text="{Binding Model, Mode=OneTime}" />
                                         <Run Text=" " />

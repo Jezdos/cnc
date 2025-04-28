@@ -1,5 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using transport_common.Exceptions;
+﻿using transport_common.Exceptions;
 
 namespace transport_common
 {
@@ -7,7 +6,8 @@ namespace transport_common
     {
         private readonly SemaphoreSlim ObjectLock = new(1, 1); // 对象锁
 
-        public async Task Init() {
+        public async Task Init()
+        {
             await ObjectLock.WaitAsync();
             try
             {
@@ -15,15 +15,17 @@ namespace transport_common
                 ChangeStatus(ConnectStatus.INIT);
                 await InitAsync();
             }
-            finally {
+            finally
+            {
                 ObjectLock.Release();
             }
-            
+
         }
         protected abstract Task InitAsync();
 
 
-        public async Task Connect() {
+        public async Task Connect()
+        {
             await ObjectLock.WaitAsync();
             try
             {
@@ -51,14 +53,17 @@ namespace transport_common
             {
                 ObjectLock.Release();
             }
-            
+
         }
         public abstract Task DisconnectAsync();
 
         public async Task Destory()
         {
+            _disposed = true;
+
             // 先判断是否需要 Disconnect（不加锁），避免递归死锁
             bool needDisconnect = Status != ConnectStatus.DISCONNECT;
+
             if (needDisconnect)
             {
                 await Disconnect(); // 这里自己内部加锁
@@ -76,25 +81,28 @@ namespace transport_common
             }
         }
 
-        public Task DestroyAsync() {
+        public Task DestroyAsync()
+        {
             Dispose();
             ObjectLock.Dispose();
             return Task.CompletedTask;
         }
 
-        
+
         private volatile ConnectStatus _status = ConnectStatus.NEW;
         public ConnectStatus Status => _status;
+
+        private volatile bool _disposed = false;
+        public bool Disposed => _disposed;
 
         public abstract void Dispose();
 
         protected void ChangeStatus(ConnectStatus status)
         {
-            lock (this) {
-                if (status == ConnectStatus.DESTROY) _status = status;
-
-                if (Status == ConnectStatus.DESTROY || Status == ConnectStatus.DESTROY) return;
-
+            lock (this)
+            {
+                if (status == _status) return;
+                if (Status == ConnectStatus.DESTROY) return;
                 _status = status;
             }
         }
@@ -105,7 +113,8 @@ namespace transport_common
             return CollectionAsync();
         }
 
-        public Task<Object> CollectionAsync() {
+        public Task<Object> CollectionAsync()
+        {
             throw new NotImplementedException();
         }
     }

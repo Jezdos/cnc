@@ -22,6 +22,7 @@
     <ProjectReference Include="..\common-core\common-core.csproj" />
     <ProjectReference Include="..\common-data\common-data.csproj" />
     <ProjectReference Include="..\common-ui\common-ui.csproj" />
+    <ProjectReference Include="..\transport-cnc\transport-cnc.csproj" />
     <ProjectReference Include="..\transport-mqtt\transport-mqtt.csproj" />
   </ItemGroup>
 
@@ -29,6 +30,12 @@
     <Resource Include="Assets\wpfui.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\Pages\DeviceViewPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,10 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Windows;
 
 
 namespace Data.Entity
-{ 
+{
     /// <summary>
     /// Defines the <see cref="PageViewModelBase{T}" />
     /// </summary>
@@ -50,7 +49,7 @@ namespace Data.Entity
         {
             if (DataList.Any())
             {
-               DataList.Clear();
+                DataList.Clear();
             }
             foreach (var item in items)
             {

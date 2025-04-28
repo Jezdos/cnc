@@ -8,9 +8,6 @@
 
 using MQTTnet;
 using MQTTnet.Formatter;
-using MQTTnet.Protocol;
-using MQTTnet.Server;
-using MQTTnet.Server.EnhancedAuthentication;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -98,71 +95,71 @@ m/XriWr/Cq4h/JfB7NTsezVslgkBaoU=
         await mqttClient.DisconnectAsync(mqttClientDisconnectOptions, CancellationToken.None);
     }
 
-    public static async Task Connect_Using_Enhanced_Authentication()
-    {
-        /*
-         * This sample uses enhanced authentication (Kerberos) when creating the connection.
-         */
+    //public static async Task Connect_Using_Enhanced_Authentication()
+    //{
+    //    /*
+    //     * This sample uses enhanced authentication (Kerberos) when creating the connection.
+    //     */
 
 
-        /*
-         * Server part...
-         */
+    //    /*
+    //     * Server part...
+    //     */
 
-        var mqttServerFactory = new MqttServerFactory();
+    //    var mqttServerFactory = new MqttServerFactory();
 
-        var serverOptions = mqttServerFactory.CreateServerOptionsBuilder().WithDefaultEndpoint().Build();
-        var server = mqttServerFactory.CreateMqttServer(serverOptions);
+    //    var serverOptions = mqttServerFactory.CreateServerOptionsBuilder().WithDefaultEndpoint().Build();
+    //    var server = mqttServerFactory.CreateMqttServer(serverOptions);
 
-        server.ValidatingConnectionAsync += async args =>
-        {
-            if (args.AuthenticationMethod == "GS2-KRB5")
-            {
-                var result = await args.ExchangeEnhancedAuthenticationAsync(new ExchangeEnhancedAuthenticationOptions(), args.CancellationToken);
+    //    server.ValidatingConnectionAsync += async args =>
+    //    {
+    //        if (args.AuthenticationMethod == "GS2-KRB5")
+    //        {
+    //            var result = await args.ExchangeEnhancedAuthenticationAsync(new ExchangeEnhancedAuthenticationOptions(), args.CancellationToken);
 
-                Console.WriteLine($"Received AUTH data from client: {Encoding.UTF8.GetString(result.AuthenticationData)}");
+    //            Console.WriteLine($"Received AUTH data from client: {Encoding.UTF8.GetString(result.AuthenticationData)}");
 
-                var authOptions = mqttServerFactory.CreateExchangeExtendedAuthenticationOptionsBuilder().WithAuthenticationData("reply context token").Build();
+    //            var authOptions = mqttServerFactory.CreateExchangeExtendedAuthenticationOptionsBuilder().WithAuthenticationData("reply context token").Build();
 
-                result = await args.ExchangeEnhancedAuthenticationAsync(authOptions, args.CancellationToken);
+    //            result = await args.ExchangeEnhancedAuthenticationAsync(authOptions, args.CancellationToken);
 
-                Console.WriteLine($"Received AUTH data from client: {Encoding.UTF8.GetString(result.AuthenticationData)}");
+    //            Console.WriteLine($"Received AUTH data from client: {Encoding.UTF8.GetString(result.AuthenticationData)}");
 
-                args.ResponseAuthenticationData = "outcome of authentication"u8.ToArray();
+    //            args.ResponseAuthenticationData = "outcome of authentication"u8.ToArray();
 
-                // Authentication DONE!
-                args.ReasonCode = MqttConnectReasonCode.Success; // Also the default!
-            }
-            else
-            {
-                args.ReasonCode = MqttConnectReasonCode.BadAuthenticationMethod;
-            }
-        };
+    //            // Authentication DONE!
+    //            args.ReasonCode = MqttConnectReasonCode.Success; // Also the default!
+    //        }
+    //        else
+    //        {
+    //            args.ReasonCode = MqttConnectReasonCode.BadAuthenticationMethod;
+    //        }
+    //    };
 
-        await server.StartAsync();
+    //    await server.StartAsync();
 
-        /*
-         * Client part...
-         */
+    //    /*
+    //     * Client part...
+    //     */
 
-        var mqttClientFactory = new MqttClientFactory();
+    //    var mqttClientFactory = new MqttClientFactory();
 
-        // Use Kerberos sample from the MQTT RFC.
-        var kerberosAuthenticationHandler = new SampleClientKerberosAuthenticationHandler();
+    //    // Use Kerberos sample from the MQTT RFC.
+    //    var kerberosAuthenticationHandler = new SampleClientKerberosAuthenticationHandler();
 
-        var clientOptions = mqttClientFactory.CreateClientOptionsBuilder()
-            .WithTcpServer("localhost")
-            .WithProtocolVersion(MqttProtocolVersion.V500)
-            .WithEnhancedAuthenticationHandler(kerberosAuthenticationHandler)
-            .WithEnhancedAuthentication("GS2-KRB5")
-            .Build();
+    //    var clientOptions = mqttClientFactory.CreateClientOptionsBuilder()
+    //        .WithTcpServer("localhost")
+    //        .WithProtocolVersion(MqttProtocolVersion.V500)
+    //        .WithEnhancedAuthenticationHandler(kerberosAuthenticationHandler)
+    //        .WithEnhancedAuthentication("GS2-KRB5")
+    //        .Build();
 
-        var client = mqttClientFactory.CreateMqttClient();
+    //    var client = mqttClientFactory.CreateMqttClient();
 
-        var result = await client.ConnectAsync(clientOptions);
+    //    var result = await client.ConnectAsync(clientOptions);
 
-        Console.WriteLine($"Client connect result: {result.ResultCode}");
-    }
+    //    Console.WriteLine($"Client connect result: {result.ResultCode}");
+    //}
 
     public static async Task Connect_Using_MQTTv5()
     {

@@ -1,23 +1,22 @@
-﻿using APP.Services;
+﻿using APP.Configuration;
+using APP.Services;
 using APP.ViewModels.Windows;
 using APP.Views.Windows;
+using Core.Extensions;
 using Core.Utils;
+using Data.Extensions;
+using Data.Interceptor;
+using log4net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Core.Extensions;
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Data.Extensions;
-using APP.Configuration;
-using Data.Interceptor;
-using log4net;
-using System;
 
 namespace APP
 {
@@ -26,6 +25,9 @@ namespace APP
     /// </summary>
     public partial class App : Application
     {
+
+        private ILog logger = LogManager.GetLogger(nameof(App));
+
         private static readonly IHost _host = Host.CreateDefaultBuilder()
         .ConfigureAppConfiguration(c => c.SetBasePath(AppContext.BaseDirectory))
         .ConfigureServices(
@@ -45,12 +47,12 @@ namespace APP
                 });
 
                 services.AddDbContextPool<APPDbContext>((options) => options
-                    .UseSqlite(ConfigurationUtil.Default.ReadConfiguration(AppConstants.CONFIG_DB_NAME),  mySqlOptions =>  mySqlOptions.CommandTimeout(30))
+                    .UseSqlite(ConfigurationUtil.Default.ReadConfiguration(AppConstants.CONFIG_DB_NAME), mySqlOptions => mySqlOptions.CommandTimeout(30))
                     .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution)
                     .EnableDetailedErrors()
                     .EnableSensitiveDataLogging()
                     .AddInterceptors(GetRequiredService<MetaDateInterceptor>())
-                    .LogTo(message => LogManager.GetLogger("EFCore").Debug(message), LogLevel.Debug), poolSize:5);
+                    .LogTo(message => LogManager.GetLogger("EFCore").Debug(message), LogLevel.Debug), poolSize: 5);
 
                 services.AddUnitOfWork<APPDbContext>();
 
@@ -68,8 +70,6 @@ namespace APP
 
                 _ = services.AddTransientFromNamespace("APP.Views.Pages", Assembly.GetExecutingAssembly());
                 _ = services.AddTransientFromNamespace("APP.ViewModels.Pages", Assembly.GetExecutingAssembly());
-
-                
             }
         )
         .Build();
@@ -106,8 +106,18 @@ namespace APP
         /// <summary>
         /// Occurs when an exception is thrown by an application but not handled.
         /// </summary>
-        private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        private async void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
+            e.Handled = true;
+            logger.ErrorFormat("程序发生错误：{0}", e.Exception.StackTrace);
+
+            var MessageBox = new Wpf.Ui.Controls.MessageBox
+            {
+                Title = "程序发生错误",
+                Content = $"详细信息: {e.Exception.Message}"
+            };
+
+            await MessageBox.ShowDialogAsync();
         }
     }
 

@@ -17,14 +17,11 @@
  * http://www.gnu.org/licenses/lgpl.html or write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-using System;
-using System.Collections.Generic;
 using System.Management;
-using System.Security.Principal;
-using System.Runtime.InteropServices;
-using System.Net.NetworkInformation;
-using System.IO;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 
 namespace ManagedWinapi
 {

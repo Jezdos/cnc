@@ -1,6 +1,4 @@
-﻿using log4net;
-
-namespace Core.Utils
+﻿namespace Core.Utils
 {
     public class WindowsProviderService
     {

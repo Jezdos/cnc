@@ -1,6 +1,4 @@
-﻿using Core.Entity;
-using Core.Utils;
-using log4net;
+﻿using log4net;
 
 namespace Core.Handler
 {

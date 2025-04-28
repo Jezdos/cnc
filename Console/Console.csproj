@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\transport-cnc\transport-cnc.csproj" />
     <ProjectReference Include="..\transport-mqtt\transport-mqtt.csproj" />
   </ItemGroup>
 

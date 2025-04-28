@@ -1,8 +1,7 @@
-﻿using System;
+﻿using HandyControl.Tools;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
-using HandyControl.Tools;
 
 namespace UI.Tools.Converters;
 

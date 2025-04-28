@@ -10,9 +10,12 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!--  Res  -->
+                <ResourceDictionary Source="pack://application:,,,/common-ui;component/Themes/Colors.xaml" />
+
                 <!--  HandyControl  -->
-                <ResourceDictionary Source="pack://application:,,,/common-ui;component/Themes/SkinDefault.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/common-ui;component/Themes/Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
 
                 <!--  MaterialDesignInXamlToolkit  -->
                 <materialDesign:CustomColorTheme BaseTheme="Light" PrimaryColor="{StaticResource AppThemeSecondaryColor}" SecondaryColor="{StaticResource AppThemeSecondaryColor}" />
@@ -20,6 +23,7 @@
 
                 <!--  WPF-UI  -->
                 <ui:ThemesDictionary Theme="Light" />
+
                 <ui:ControlsDictionary />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

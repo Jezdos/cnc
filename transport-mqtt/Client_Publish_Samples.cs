@@ -6,7 +6,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
 using MQTTnet;
-using MQTTnet.Server;
+//using MQTTnet.Server;
 
 namespace Transport_MQTT;
 

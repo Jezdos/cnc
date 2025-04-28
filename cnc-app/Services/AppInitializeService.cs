@@ -1,19 +1,15 @@
 ﻿using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace APP.Services
 {
     public class AppInitializeService(FMqttClientManagement clientManagement) : IHostedService
     {
 
-        FMqttClientManagement clientManagement = clientManagement;
+        private readonly FMqttClientManagement clientManagement = clientManagement;
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            await ActivityHSLCommunication();
             await clientManagement.InitAsync();
         }
 
@@ -21,5 +17,16 @@ namespace APP.Services
         {
             return Task.CompletedTask;
         }
+
+
+        private Task ActivityHSLCommunication()
+        {
+            if (!HslCommunication.Authorization.SetAuthorizationCode("ca8f4334-5b43-4e86-b488-725007c4eb44"))
+            {
+                throw new Exception("HSLCommunication Activity Failed!");
+            }
+            return Task.CompletedTask;
+        }
+
     }
 }

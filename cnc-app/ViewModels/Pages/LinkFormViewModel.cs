@@ -47,7 +47,7 @@ namespace APP.ViewModels.Pages
 
         private readonly FormSubmitEventHandler<LinkMqtt> SubmitEvent;
 
-        public LinkFormViewModel(LinkMqtt entity, FormSubmitEventHandler<LinkMqtt> submitEvent, bool autoClose = true):base(autoClose: autoClose)
+        public LinkFormViewModel(LinkMqtt entity, FormSubmitEventHandler<LinkMqtt> submitEvent, bool autoClose = true) : base(autoClose: autoClose)
         {
 
             this.Entity = entity;
@@ -70,7 +70,8 @@ namespace APP.ViewModels.Pages
         }
 
         [RelayCommand(CanExecute = nameof(IsFree))]
-        private async Task Submit() => await ExecuteAsync(async () => {
+        private async Task Submit() => await ExecuteAsync(async () =>
+        {
             ValidateAllProperties();
 
             if (HasErrors) return false;
@@ -88,7 +89,7 @@ namespace APP.ViewModels.Pages
         });
 
 
-        
+
 
 
     }

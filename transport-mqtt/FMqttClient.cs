@@ -9,7 +9,7 @@ namespace Transport_MQTT;
 public class FMqttClient(long linkId, string server, int port = 1883, string? clientId = null, string? username = "", string? password = "", int? keepAliveSeconds = 10) : IConnectLifeCycle
 {
 
-    private static readonly ILog logger = LogManager.GetLogger(nameof(FMqttClient));
+    private readonly ILog logger = LogManager.GetLogger(nameof(FMqttClient));
 
     private IMqttClient? _mqttClient;
     private MqttClientOptions? _channelOptions;
@@ -46,10 +46,8 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
             .WithKeepAlivePeriod(TimeSpan.FromSeconds(_keepAliveSeconds))
             .WithProtocolVersion(MQTTnet.Formatter.MqttProtocolVersion.V311)
             .Build();
-
         await Task.CompletedTask;
     }
-
 
     protected override async Task ConnectAsync()
     {
@@ -65,20 +63,29 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
 
     private async Task AttemptConnectWithRetry()
     {
-        if (_mqttClient == null) return;
-        if (Status == ConnectStatus.CONNECTED) base.ChangeStatus(ConnectStatus.CONNECTING);
-        while (Status == ConnectStatus.CONNECTING)
+        if (_mqttClient == null || Disposed) return;
+        base.ChangeStatus(ConnectStatus.CONNECTING);
+        Task.Run(async () =>
         {
-            try
+            while (!Disposed)
             {
-                await _mqttClient.ConnectAsync(_channelOptions).ConfigureAwait(false);
+                try
+                {
+                    if (_mqttClient != null)
+                    {
+                        await _mqttClient.ConnectAsync(_channelOptions);
+                    }
+
+                    if (Status == ConnectStatus.CONNECTED) return;
+                }
+                catch (Exception ex)
+                {
+                    logger.DebugFormat("Retry in 5 seconds. Error: {0}", ex);
+                }
+                await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false); // 非阻塞延迟
             }
-            catch (Exception ex)
-            {
-                logger.DebugFormat("MqttClient connection failed, try again in five seconds. ex:{0}", ex);
-                await Task.Delay(5000);
-            }
-        }
+        });
+        await Task.CompletedTask;
     }
 
     // 订阅主题（支持QoS级别）
@@ -136,21 +143,20 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
         if (_mqttClient?.IsConnected == true)
         {
             base.ChangeStatus(ConnectStatus.CONNECTED);
+            _ConnectionStatusChanged?.Invoke(this, (_linkId, base.Status));
             logger.DebugFormat("client: {0} Connected to {1} : {2}", _clientId, _server, _port);
         }
         else
         {
             logger.DebugFormat("client: {0} Connected failed, cause {1}", _clientId, e.ConnectResult.ReasonString);
         }
-
-        _ConnectionStatusChanged?.Invoke(this, (_linkId, base.Status));
         return Task.CompletedTask;
     }
 
     private async Task OnDisconnected(MqttClientDisconnectedEventArgs e)
     {
         logger.DebugFormat("client: {0} Disconnected, cause : {1}", _clientId, e.Reason);
-        _ConnectionStatusChanged?.Invoke(this, (_linkId, base.Status));
+        _ConnectionStatusChanged?.Invoke(this, (_linkId, ConnectStatus.DISCONNECT));
 
         if (e.ClientWasConnected)
         {
@@ -191,7 +197,8 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
             _mqttClient.Dispose();
         }
         catch (ObjectDisposedException) { /* 安全忽略 */ }
-        finally {
+        finally
+        {
             GC.SuppressFinalize(this);
         }
     }
