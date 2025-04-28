@@ -9,42 +9,31 @@ namespace APP.Services
     public class DeviceClientManagement(IUnitOfWork unitOfWork) : IDisposable
     {
 
-        private event EventHandler<(long linkId, ConnectStatus status)> _ChangeActionNotice = (sender, objetc) => { };
-        public event EventHandler<(long linkId, ConnectStatus status)> ChangeActionNotice
+        private event EventHandler<(long deviceId, ConnectStatus status)> _ChangeActionNotice = (sender, objetc) => { };
+        public event EventHandler<(long deviceId, ConnectStatus status)> ChangeActionNotice
         {
             add { _ChangeActionNotice += value; }
             remove { _ChangeActionNotice -= value; }
         }
 
-        private readonly ConcurrentDictionary<long, FMqttClient> _clients = new();
+        private readonly ConcurrentDictionary<long, IDevice> _clients = new();
 
-        public bool IsClientConnected(long linkId) => _clients.TryGetValue(linkId, out var client) && client.Status == ConnectStatus.CONNECTED;
+        public bool IsClientConnected(long deviceId) => _clients.TryGetValue(deviceId, out var client) && client.Status == ConnectStatus.CONNECTED;
 
-        public bool TryGetClient(long linkId, out FMqttClient? client) => _clients.TryGetValue(linkId, out client);
+        public bool TryGetClient(long deviceId, out IDevice? client) => _clients.TryGetValue(deviceId, out client);
 
-        public async Task<bool> Submit(LinkMqtt item)
+        public async Task<bool> Submit(IDevice client)
         {
-            FMqttClient? client = await GenMqttClient(item);
-            if (client is not null)
-            {
-                return await this.Submit(item.LinkId.Value, client);
-            }
-            return false;
-        }
+            this.Remove(client.DeviceId);
 
-        public async Task<bool> Submit(long linkId, FMqttClient client)
-        {
-
-            this.Remove(linkId);
-
-            return await Task.FromResult(_clients.TryAdd(linkId, client));
+            return await Task.FromResult(_clients.TryAdd(client.DeviceId, client));
         }
 
 
-        public bool Remove(long? linkId)
+        public bool Remove(long? deviceId)
         {
-            if (linkId is null) return false;
-            if (_clients.TryRemove(linkId.Value, out FMqttClient? removedValue))
+            if (deviceId is null) return false;
+            if (_clients.TryRemove(deviceId.Value, out IDevice? removedValue))
             {
                 if (removedValue is not null)
                 {
@@ -56,44 +45,16 @@ namespace APP.Services
             return false;
         }
 
-
-        private async Task<FMqttClient?> GenMqttClient(LinkMqtt item)
-        {
-
-            if (item is { LinkId: not null, Host: not null, Port: not null, Model: LinkModelEnum.AUTO })
-            {
-                FMqttClient client = new FMqttClient(
-                            linkId: item.LinkId.Value,
-                            server: item.Host,
-                            port: item.Port.Value,
-                            clientId: item.ClientId,
-                            username: item.Username,
-                            password: item.Password,
-                            keepAliveSeconds: item.KeepAlive);
-
-                client.ConnectionStatusChanged += (linkId, status) => _ChangeActionNotice.Invoke(linkId, status);
-
-                Task.Run(async () =>
-                {
-                    await client.Init();
-                    await client.Connect();
-                });
-
-                return client;
-            }
-            return null;
-        }
-
         public async Task InitAsync()
         {
-            var respository = unitOfWork.GetRepository<LinkMqtt>();
-            List<LinkMqtt> list = [.. await respository.GetAllAsync()];
+            //var respository = unitOfWork.GetRepository<LinkMqtt>();
+            //List<LinkMqtt> list = [.. await respository.GetAllAsync()];
 
-            foreach (var item in list)
-            {
-                FMqttClient? client = await GenMqttClient(item);
-                if (client != null) await Submit(item.LinkId.Value, client);
-            }
+            //foreach (var item in list)
+            //{
+            //    FMqttClient? client = await GenMqttClient(item);
+            //    if (client != null) await Submit(item.LinkId.Value, client);
+            //}
         }
 
         public void Dispose()

@@ -175,7 +175,7 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
         return Task.CompletedTask;
     }
 
-    public override async Task DisconnectAsync()
+    protected override async Task DisconnectAsync()
     {
         if (_mqttClient?.IsConnected == true)
         {

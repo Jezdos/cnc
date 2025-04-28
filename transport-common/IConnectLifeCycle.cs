@@ -55,7 +55,7 @@ namespace transport_common
             }
 
         }
-        public abstract Task DisconnectAsync();
+        protected abstract Task DisconnectAsync();
 
         public async Task Destory()
         {
