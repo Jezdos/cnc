@@ -2,14 +2,10 @@
 
 namespace transport_common
 {
-    public interface IDevice
+    public abstract class IDevice: IConnectLifeCycle
     {
-        string DeviceName { get; }
+        public abstract string DeviceName { get; }
 
-        long DeviceId { get; }
-
-        ConnectStatus Status { get; }
-
-        Task<string> Collect();
+        public abstract Task<string> Collect();
     }
 }

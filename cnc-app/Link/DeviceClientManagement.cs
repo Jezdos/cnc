@@ -1,6 +1,8 @@
 ﻿using APP.Domain;
+using APP.Domain.Enums;
 using Data.UnitOfWork;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using transport_common;
 using Transport_MQTT;
 
@@ -18,32 +20,58 @@ namespace APP.Services
 
         private readonly ConcurrentDictionary<long, IDevice> _clients = new();
 
-        public bool IsClientConnected(long deviceId) => _clients.TryGetValue(deviceId, out var client) && client.Status == ConnectStatus.CONNECTED;
+        public bool IsClientConnected(long key) => _clients.TryGetValue(key, out var client) && client.Status == ConnectStatus.CONNECTED;
 
-        public bool TryGetClient(long deviceId, out IDevice? client) => _clients.TryGetValue(deviceId, out client);
+        public bool TryGetClient(long key, out IDevice? client) => _clients.TryGetValue(key, out client);
 
         public async Task<bool> Submit(IDevice client)
         {
-            this.Remove(client.DeviceId);
-
-            return await Task.FromResult(_clients.TryAdd(client.DeviceId, client));
+            this.Remove(client.GetKey());
+            return await Task.FromResult(_clients.TryAdd(client.GetKey(), client));
         }
 
-
-        public bool Remove(long? deviceId)
+        public bool Remove(long? key)
         {
-            if (deviceId is null) return false;
-            if (_clients.TryRemove(deviceId.Value, out IDevice? removedValue))
+            if (key is null) return false;
+            if (_clients.TryRemove(key.Value, out IDevice? removedValue))
             {
                 if (removedValue is not null)
                 {
-                    removedValue.ConnectionStatusChanged -= (linkId, status) => _ChangeActionNotice.Invoke(linkId, status);
+                    removedValue.ConnectionStatusChanged -= (key, status) => _ChangeActionNotice.Invoke(key, status);
                     _ = removedValue.Destory();
                     return true;
                 }
             }
             return false;
         }
+
+        private IDevice? GenMqttClient(Device item)
+        {
+
+            if (item is { DeviceId: not null, Model: DeviceModelEnum.AUTO })
+            {
+                FMqttClient client = new FMqttClient(
+                            linkId: item.LinkId.Value,
+                            server: item.Host,
+                            port: item.Port.Value,
+                            clientId: item.ClientId,
+                            username: item.Username,
+                            password: item.Password,
+                            keepAliveSeconds: item.KeepAlive);
+
+                client.ConnectionStatusChanged += (linkId, status) => _ChangeActionNotice.Invoke(linkId, status);
+
+                Task.Run(async () =>
+                {
+                    await client.Init();
+                    await client.Connect();
+                });
+
+                return client;
+            }
+            return null;
+        }
+
 
         public async Task InitAsync()
         {

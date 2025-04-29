@@ -24,19 +24,17 @@ namespace APP.Services
 
         public async Task<bool> Submit(LinkMqtt item)
         {
-            FMqttClient? client = await GenMqttClient(item);
+            FMqttClient? client = GenMqttClient(item);
             if (client is not null)
             {
-                return await this.Submit(item.LinkId.Value, client);
+                return await this.Submit(client.GetKey(), client);
             }
             return false;
         }
 
         public async Task<bool> Submit(long linkId, FMqttClient client)
         {
-
             this.Remove(linkId);
-
             return await Task.FromResult(_clients.TryAdd(linkId, client));
         }
 
@@ -57,7 +55,7 @@ namespace APP.Services
         }
 
 
-        private async Task<FMqttClient?> GenMqttClient(LinkMqtt item)
+        private FMqttClient? GenMqttClient(LinkMqtt item)
         {
 
             if (item is { LinkId: not null, Host: not null, Port: not null, Model: LinkModelEnum.AUTO })
@@ -91,8 +89,8 @@ namespace APP.Services
 
             foreach (var item in list)
             {
-                FMqttClient? client = await GenMqttClient(item);
-                if (client != null) await Submit(item.LinkId.Value, client);
+                FMqttClient? client = GenMqttClient(item);
+                if (client != null) await Submit(client.GetKey(), client);
             }
         }
 

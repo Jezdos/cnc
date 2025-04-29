@@ -20,7 +20,7 @@ namespace APP.Domain.Views
 
         public string? Host { get; set; }
 
-        public long? Port { get; set; }
+        public int? Port { get; set; }
 
         public long? ReadTimeOut { get; set; }
 

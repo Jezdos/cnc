@@ -6,7 +6,7 @@ using transport_common;
 
 namespace transport_cnc
 {
-    public class CncClient(long deviceId, string server, int port, string path) : IConnectLifeCycle, IDevice
+    public class CncClient(long deviceId, string server, int port, string path) : IDevice
     {
         private readonly ILog logger = LogManager.GetLogger(nameof(CncClient));
 
@@ -17,9 +17,8 @@ namespace transport_cnc
         public readonly int _port = port;
         public readonly string _path = path;
 
-        public string DeviceName => "CNC";
-        public long DeviceId => _deviceId;
 
+        #region IConnectLifeCycle
 
         protected override Task InitAsync()
         {
@@ -43,7 +42,13 @@ namespace transport_cnc
 
         public override void Dispose() { }
 
-        public async Task<string> Collect()
+        #endregion
+
+        #region IDevice
+
+        public override string DeviceName => "CNC";
+
+        public override async Task<string> Collect()
         {
             Dictionary<string, object> dataMap = new Dictionary<string, object>();
             if (fanuc is not null)
@@ -91,6 +96,8 @@ namespace transport_cnc
             string json = JsonSerializer.Serialize(dataMap);
             return await Task.FromResult(json);
         }
+
+        #endregion
 
         #region function
 
@@ -143,6 +150,10 @@ namespace transport_cnc
             return false;
         }
 
+        public override long GetKey()
+        {
+            return _deviceId;
+        }
 
         // 统一处理结果的辅助方法
         private void ProcessResult<T>(Dictionary<string, object> dataMap, string key, OperateResult<T> result)
@@ -162,7 +173,7 @@ namespace transport_cnc
             }
         }
 
-        #endregion 
+        #endregion
 
 
     }

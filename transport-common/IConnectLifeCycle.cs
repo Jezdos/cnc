@@ -4,7 +4,23 @@ namespace transport_common
 {
     public abstract class IConnectLifeCycle : IDisposable
     {
+
+        private volatile ConnectStatus _status = ConnectStatus.NEW;
+        public ConnectStatus Status => _status;
+
+        private volatile bool _disposed = false;
+        public bool Disposed => _disposed;
+
+        private event EventHandler<(long key, ConnectStatus status)> _ConnectionStatusChanged = (sender, objetc) => { };
+        public event EventHandler<(long key, ConnectStatus status)> ConnectionStatusChanged
+        {
+            add => _ConnectionStatusChanged += value;
+            remove => _ConnectionStatusChanged -= value;
+        }
+
         private readonly SemaphoreSlim ObjectLock = new(1, 1); // 对象锁
+
+        public abstract long GetKey();
 
         public async Task Init()
         {
@@ -88,13 +104,6 @@ namespace transport_common
             return Task.CompletedTask;
         }
 
-
-        private volatile ConnectStatus _status = ConnectStatus.NEW;
-        public ConnectStatus Status => _status;
-
-        private volatile bool _disposed = false;
-        public bool Disposed => _disposed;
-
         public abstract void Dispose();
 
         protected void ChangeStatus(ConnectStatus status)
@@ -104,18 +113,12 @@ namespace transport_common
                 if (status == _status) return;
                 if (Status == ConnectStatus.DESTROY) return;
                 _status = status;
+                try
+                {
+                    _ConnectionStatusChanged?.Invoke(this, (GetKey(), Status));
+                }
+                catch (Exception) { }
             }
-        }
-
-        public Task<Object> Collection()
-        {
-            if (Status != ConnectStatus.CONNECTED) throw new LifeCycleException();
-            return CollectionAsync();
-        }
-
-        public Task<Object> CollectionAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 }

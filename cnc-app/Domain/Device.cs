@@ -1,4 +1,5 @@
 ﻿using APP.Domain.Enums;
+using APP.Domain.Views;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

@@ -23,13 +23,6 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     public readonly string _password = password ?? "";
     public readonly int _keepAliveSeconds = keepAliveSeconds ?? 10;
 
-    private event EventHandler<(long linkId, ConnectStatus status)> _ConnectionStatusChanged = (sender, objetc) => { };
-    public event EventHandler<(long linkId, ConnectStatus status)> ConnectionStatusChanged
-    {
-        add => _ConnectionStatusChanged += value;
-        remove => _ConnectionStatusChanged -= value;
-    }
-
     private event EventHandler<(string Topic, string Payload)>? _MessageProcess = (sender, objetc) => { };
     public event EventHandler<(string Topic, string Payload)>? MessageProcess
     {
@@ -143,7 +136,6 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
         if (_mqttClient?.IsConnected == true)
         {
             base.ChangeStatus(ConnectStatus.CONNECTED);
-            _ConnectionStatusChanged?.Invoke(this, (_linkId, base.Status));
             logger.DebugFormat("client: {0} Connected to {1} : {2}", _clientId, _server, _port);
         }
         else
@@ -156,8 +148,6 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     private async Task OnDisconnected(MqttClientDisconnectedEventArgs e)
     {
         logger.DebugFormat("client: {0} Disconnected, cause : {1}", _clientId, e.Reason);
-        _ConnectionStatusChanged?.Invoke(this, (_linkId, ConnectStatus.DISCONNECT));
-
         if (e.ClientWasConnected)
         {
             await AttemptConnectWithRetry();
@@ -201,5 +191,10 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
         {
             GC.SuppressFinalize(this);
         }
+    }
+
+    public override long GetKey()
+    {
+        return _linkId;
     }
 }
