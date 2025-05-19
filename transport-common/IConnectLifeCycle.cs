@@ -113,11 +113,7 @@ namespace transport_common
                 if (status == _status) return;
                 if (Status == ConnectStatus.DESTROY) return;
                 _status = status;
-                try
-                {
-                    _ConnectionStatusChanged?.Invoke(this, (GetKey(), Status));
-                }
-                catch (Exception) { }
+                _ConnectionStatusChanged?.Invoke(this, (GetKey(), Status));
             }
         }
     }

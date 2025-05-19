@@ -23,16 +23,17 @@ namespace APP.Domain.Enums
             };
         }
 
-
         public static IDevice? Instance(this DeviceKindEnum kind, Device item)
         {
-            
-            switch (kind) { 
+
+            switch (kind)
+            {
                 case DeviceKindEnum.CNC:
-                    { 
+                    {
                         DeviceCNC device = new DeviceCNC(item);
-                        if (device is { DeviceId: not null, Host: not null, Port: not null }) {
-                            return new CncClient(device.DeviceId.Value, device.Host, device.Port.Value, device.Path);
+                        if (device is { DeviceId: not null, Host: not null, Port: not null, Path: not null, Interval: not null })
+                        {
+                            return new CncClient(device.DeviceId.Value, device.Host, device.Port.Value, device.Path, device.Interval.Value);
                         }
                     }
                     break;
@@ -41,6 +42,6 @@ namespace APP.Domain.Enums
 
             }
             return null;
-}
+        }
     }
 }

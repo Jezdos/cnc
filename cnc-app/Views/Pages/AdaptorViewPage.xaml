@@ -1,0 +1,74 @@
+﻿<Page x:Class="APP.Views.Pages.AdaptorViewPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:APP.Views.Pages"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Title="AdaptorViewPage"
+      d:DesignHeight="700"
+      d:DesignWidth="1000"
+      mc:Ignorable="d">
+
+    <StackPanel Margin="20">
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Margin="0,20,0,15" HorizontalAlignment="Left" FontSize="28" FontWeight="Medium" Text="Adaptor 节点列表" />
+            <ui:Button HorizontalAlignment="Right" Appearance="Primary" Command="{Binding ViewModel.OpenLinkFormCommand}" Content="新增" Icon="{ui:SymbolIcon Add24}" />
+        </Grid>
+
+        <Grid>
+            <ItemsControl ItemsSource="{Binding ViewModel.Items}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ui:CardAction Width="290"
+                                       Height="90"
+                                       Margin="4"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Stretch"
+                                       Command="{Binding DataContext.ViewModel.OpenLinkFormCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}, Mode=OneWay}"
+                                       CommandParameter="{Binding}"
+                                       Icon="{ui:SymbolIcon Link24}"
+                                       IsChevronVisible="False">
+                            <Grid>
+                                <StackPanel>
+                                    <ui:TextBlock FontSize="16" FontTypography="BodyStrong" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" TextWrapping="Wrap" />
+                                    <StackPanel>
+                                        <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
+                                            <ui:TextBlock Width="150" FontSize="12">
+                                                <Run FontWeight="DemiBold" Foreground="{DynamicResource AppThemeSecondaryBrush}" Text="DEVICE" />
+                                                <Run Text=": " />
+                                                <Run FontWeight="DemiBold" Foreground="{DynamicResource AppThemeBrush}" Text="{Binding DeviceName, Mode=OneTime}" />
+                                            </ui:TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:TextBlock Width="150" FontSize="12">
+                                                <Run FontWeight="DemiBold" Foreground="{DynamicResource AppThemeSecondaryBrush}" Text="LINK" />
+                                                <Run Text=": " />
+                                                <Run FontWeight="DemiBold" Foreground="{DynamicResource AppThemeBrush}" Text="{Binding LinkName, Mode=OneTime}" />
+                                            </ui:TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <ui:Button Command="{Binding DataContext.ViewModel.RemoveLinkFormCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ItemsControl}, Mode=OneWay}" CommandParameter="{Binding}" Icon="{ui:SymbolIcon Delete20}" />
+                                </StackPanel>
+                            </Grid>
+
+                        </ui:CardAction>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </StackPanel>
+</Page>

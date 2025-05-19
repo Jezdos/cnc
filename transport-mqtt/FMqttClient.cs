@@ -23,8 +23,8 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     public readonly string _password = password ?? "";
     public readonly int _keepAliveSeconds = keepAliveSeconds ?? 10;
 
-    private event EventHandler<(string Topic, string Payload)>? _MessageProcess = (sender, objetc) => { };
-    public event EventHandler<(string Topic, string Payload)>? MessageProcess
+    private event EventHandler<(long linkId, string Topic, string Payload)>? _MessageProcess = (sender, objetc) => { };
+    public event EventHandler<(long linkId, string Topic, string Payload)>? MessageProcess
     {
         add => _MessageProcess += value;
         remove => _MessageProcess -= value;
@@ -84,30 +84,32 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
     // 订阅主题（支持QoS级别）
     public async Task SubscribeAsync(string topic, MqttQualityOfServiceLevel qos = MqttQualityOfServiceLevel.ExactlyOnce)
     {
-        if (_mqttClient?.IsConnected != true)
+        if (_mqttClient?.IsConnected == true)
         {
-            logger.ErrorFormat("SubscribeAsync ERROR: client: {0} is not connected", _clientId);
-            throw new InvalidOperationException("MQTT client is not connected");
-        }
-
-        var topicFilter = new MqttTopicFilterBuilder()
+            var topicFilter = new MqttTopicFilterBuilder()
             .WithTopic(topic)
             .WithQualityOfServiceLevel(qos)
             .Build();
 
-        await _mqttClient.SubscribeAsync(topicFilter).ConfigureAwait(false);
+            await _mqttClient.SubscribeAsync(topicFilter).ConfigureAwait(false);
+        }
+        else
+        {
+            logger.ErrorFormat("SubscribeAsync ERROR: client: {0} is not connected", _clientId);
+        }
     }
 
     // 取消订阅
     public async Task UnsubscribeAsync(string topic)
     {
-        if (_mqttClient?.IsConnected != true)
+        if (_mqttClient?.IsConnected == true)
+        {
+            await _mqttClient.UnsubscribeAsync(topic).ConfigureAwait(false);
+        }
+        else
         {
             logger.ErrorFormat("UnsubscribeAsync ERROR: client: {0}  is not connected", _clientId);
-            throw new InvalidOperationException("MQTT client is not connected");
         }
-
-        await _mqttClient.UnsubscribeAsync(topic).ConfigureAwait(false);
     }
 
     // 发布消息（支持QoS级别和保留标志）
@@ -115,20 +117,22 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
         MqttQualityOfServiceLevel qos = MqttQualityOfServiceLevel.AtLeastOnce,
         bool retain = false)
     {
-        if (_mqttClient == null || !_mqttClient.IsConnected)
+        if (_mqttClient != null && _mqttClient.IsConnected)
         {
-            logger.ErrorFormat("PublishAsync ERROR: client: {0}  is not connected", _clientId);
-            throw new InvalidOperationException("MQTT client is not connected");
-        }
-
-        var message = new MqttApplicationMessageBuilder()
+            var message = new MqttApplicationMessageBuilder()
             .WithTopic(topic)
             .WithPayload(payload)
             .WithQualityOfServiceLevel(qos)
             .WithRetainFlag(retain)
             .Build();
 
-        await _mqttClient.PublishAsync(message).ConfigureAwait(false);
+            await _mqttClient.PublishAsync(message).ConfigureAwait(false);
+        }
+        else
+        {
+            logger.ErrorFormat("PublishAsync ERROR: client: {0}  is not connected", _clientId);
+        }
+
     }
 
     private Task OnConnected(MqttClientConnectedEventArgs e)
@@ -160,8 +164,8 @@ public class FMqttClient(long linkId, string server, int port = 1883, string? cl
         var payload = !e.ApplicationMessage.Payload.IsEmpty
             ? Encoding.UTF8.GetString(e.ApplicationMessage.Payload)
             : string.Empty;
-        logger.DebugFormat("client: {0} receive message : {1}", _clientId, payload);
-        _MessageProcess?.Invoke(this, (e.ApplicationMessage.Topic, payload));
+        logger.DebugFormat("client: {0} receive message topic : {1}, message : {2}", _clientId, e.ApplicationMessage.Topic, payload);
+        _MessageProcess?.Invoke(this, (_linkId, e.ApplicationMessage.Topic, payload));
         return Task.CompletedTask;
     }
 

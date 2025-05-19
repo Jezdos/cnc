@@ -27,6 +27,11 @@ namespace APP.ViewModels.Pages
         [ObservableProperty]
         public DeviceKindEnum _Kind = DeviceKindEnum.CNC;
 
+        [Range(minimum: 50, maximum: 99999, ErrorMessage = "请输入数字: 1000-99999")]
+        [Required(ErrorMessage = "该字段不能为空")]
+        [ObservableProperty]
+        public int? _Interval;
+
         [ObservableProperty]
         public IDeviceFormView? _DynamicForm;
 
@@ -45,6 +50,7 @@ namespace APP.ViewModels.Pages
             this.Name = entity.Name;
             this.Model = entity.Model;
             this.Kind = entity.Kind;
+            this.Interval = entity.Interval;
 
             SubmitEvent = submitEvent;
 
@@ -63,6 +69,7 @@ namespace APP.ViewModels.Pages
             this.Entity.Name = this.Name;
             this.Entity.Model = this.Model;
             this.Entity.Kind = this.Kind;
+            this.Entity.Interval = this.Interval;
             this.Entity.Params = DynamicForm is not null ? DynamicForm.ReadParams() : "";
             return await SubmitEvent.SafeInvoke(this.Entity);
         });

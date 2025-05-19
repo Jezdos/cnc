@@ -45,7 +45,7 @@
             </ui:TitleBar.Icon>
             <ui:TitleBar.Header>
                 <StackPanel>
-                    <TextBlock Margin="0,9" VerticalAlignment="Center" FontSize="12" Text="{Binding MainWindowViewModel.ApplicationTitle}" />
+                    <TextBlock Margin="0,8" VerticalAlignment="Center" FontSize="12" FontWeight="SemiBold" Text="{Binding MainWindowViewModel.ApplicationTitle}" />
                 </StackPanel>
             </ui:TitleBar.Header>
         </ui:TitleBar>

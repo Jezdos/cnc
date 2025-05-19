@@ -18,11 +18,12 @@ namespace APP.Domain.Views
         [JsonIgnore]
         public DeviceKindEnum Kind { get; set; }
 
+        [JsonIgnore]
+        public int? Interval { get; set; }
+
         public string? Host { get; set; }
 
         public int? Port { get; set; }
-
-        public long? ReadTimeOut { get; set; }
 
         public string? Path { get; set; }
 
@@ -38,6 +39,7 @@ namespace APP.Domain.Views
             Name = device.Name;
             Model = device.Model;
             Kind = device.Kind;
+            Interval = device.Interval;
             Params = device.Params;
 
             this.Deserialize();
@@ -57,7 +59,6 @@ namespace APP.Domain.Views
                 {
                     Host = entity.Host;
                     Port = entity.Port;
-                    ReadTimeOut = entity.ReadTimeOut;
                     Path = entity.Path;
                 }
             }

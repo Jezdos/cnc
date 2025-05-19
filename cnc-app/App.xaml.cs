@@ -67,6 +67,8 @@ namespace APP
                 _ = services.AddSingleton<IContentDialogService, ContentDialogService>();
                 _ = services.AddSingleton<WindowsProviderService>();
                 _ = services.AddSingleton<FMqttClientManagement>();
+                _ = services.AddSingleton<DeviceClientManagement>();
+                _ = services.AddSingleton<AdaptorManagement>();
 
                 _ = services.AddTransientFromNamespace("APP.Views.Pages", Assembly.GetExecutingAssembly());
                 _ = services.AddTransientFromNamespace("APP.ViewModels.Pages", Assembly.GetExecutingAssembly());

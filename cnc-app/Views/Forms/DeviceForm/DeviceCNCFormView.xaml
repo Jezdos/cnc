@@ -18,6 +18,7 @@
     </UserControl.Resources>
 
     <StackPanel>
+        
         <StackPanel Margin="0,5" Orientation="Horizontal">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Host:" />
@@ -31,11 +32,6 @@
                     </i:Interaction.Behaviors>
                 </ui:TextBox>
             </StackPanel>
-        </StackPanel>
-
-        <StackPanel Margin="0,5" Orientation="Horizontal">
-            <TextBlock Width="90" HorizontalAlignment="Center" VerticalAlignment="Center" Text="读超时:" />
-            <ui:TextBox Width="420" PlaceholderText="读取超时时间" Text="{Binding ViewModel.ReadTimeOut}" />
         </StackPanel>
 
         <StackPanel Margin="0,5" Orientation="Horizontal">

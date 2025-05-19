@@ -2,15 +2,19 @@
 
 namespace APP.Services
 {
-    public class AppInitializeService(FMqttClientManagement clientManagement) : IHostedService
+    public class AppInitializeService(FMqttClientManagement mqttClientManagement, DeviceClientManagement deviceClientManagement, AdaptorManagement adaptorManagement) : IHostedService
     {
 
-        private readonly FMqttClientManagement clientManagement = clientManagement;
+        private readonly FMqttClientManagement mqttClientManagement = mqttClientManagement;
+        private readonly DeviceClientManagement deviceClientManagement = deviceClientManagement;
+        private readonly AdaptorManagement adaptorManagement = adaptorManagement;
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await ActivityHSLCommunication();
-            await clientManagement.InitAsync();
+            await mqttClientManagement.InitAsync();
+            await deviceClientManagement.InitAsync();
+            await adaptorManagement.InitAsync();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

@@ -1,5 +1,4 @@
 ﻿using APP.Domain.Enums;
-using APP.Domain.Views;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,6 +20,9 @@ namespace APP.Domain
         [Column("kind")]
         public DeviceKindEnum Kind { get; set; }
 
+        [Column("interval")]
+        public int? Interval { get; set; }
+
         [Column("params")]
         public string? Params { get; set; }
 
@@ -32,6 +34,7 @@ namespace APP.Domain
             Name = entity.Name;
             Model = entity.Model;
             Kind = entity.Kind;
+            Interval = entity.Interval;
             Params = entity.Params;
         }
     }

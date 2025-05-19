@@ -14,15 +14,11 @@ namespace APP.ViewModels.Pages.DeviceForm
         public string? _Host;
         partial void OnHostChanged(string? value) => ValidateProperty(value, nameof(Host));
 
+        [Range(minimum: 1000, maximum: 99999, ErrorMessage = "请输入数字: 1000-99999")]
         [Required(ErrorMessage = "该字段不能为空")]
         [ObservableProperty]
-        public long? _Port;
-        partial void OnPortChanged(long? value) => ValidateProperty(value, nameof(Port));
-
-        [Required(ErrorMessage = "该字段不能为空")]
-        [ObservableProperty]
-        public long? _ReadTimeOut;
-        partial void OnReadTimeOutChanged(long? value) => ValidateProperty(value, nameof(ReadTimeOut));
+        public int? _Port;
+        partial void OnPortChanged(int? value) => ValidateProperty(value, nameof(Port));
 
         [Required(ErrorMessage = "该字段不能为空")]
         [ObservableProperty]
@@ -34,7 +30,6 @@ namespace APP.ViewModels.Pages.DeviceForm
             Device = new DeviceCNC(device);
             this.Host = Device.Host;
             this.Port = Device.Port;
-            this.ReadTimeOut = Device.ReadTimeOut;
             this.Path = Device.Path;
         }
 
@@ -43,7 +38,6 @@ namespace APP.ViewModels.Pages.DeviceForm
             if (Device is null) return string.Empty;
             Device.Host = this.Host;
             Device.Port = this.Port;
-            Device.ReadTimeOut = this.ReadTimeOut;
             Device.Path = this.Path;
             return Device.Serializer();
         }

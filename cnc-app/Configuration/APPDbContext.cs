@@ -9,6 +9,7 @@ namespace APP.Configuration
 
         public DbSet<LinkMqtt> Links { get; set; }
         public DbSet<Device> Devices { get; set; }
+        public DbSet<Adaptor> Adaptors { get; set; }
 
         public APPDbContext(DbContextOptions options) : base(options)
         {

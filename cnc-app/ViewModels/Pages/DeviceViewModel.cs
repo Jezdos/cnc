@@ -1,13 +1,18 @@
 ﻿using APP.Domain;
+using APP.Domain.Enums;
 using APP.Domain.Views;
+using APP.Services;
 using APP.Views.Forms;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Core.Enums;
+using Core.Extensions;
 using Core.Utils;
 using Data.UnitOfWork;
 using log4net;
 using MaterialDesignThemes.Wpf;
 using System.Collections.ObjectModel;
+using transport_common;
 using UI;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
@@ -21,15 +26,17 @@ namespace APP.ViewModels.Pages
         private readonly IUnitOfWork unitOfWork;
         private readonly IRepository<Device> repository;
         private readonly IContentDialogService contentDialogService;
+        private readonly DeviceClientManagement deviceManagement;
 
         [ObservableProperty]
         private ObservableCollection<DeviceView> _Items = [];
 
-        public DeviceViewModel(IUnitOfWork unitOfWork, IContentDialogService contentDialogService)
+        public DeviceViewModel(IUnitOfWork unitOfWork, IContentDialogService contentDialogService, DeviceClientManagement deviceManagement)
         {
             this.unitOfWork = unitOfWork;
             this.repository = unitOfWork.GetRepository<Device>();
             this.contentDialogService = contentDialogService;
+            this.deviceManagement = deviceManagement;
         }
 
         [RelayCommand]
@@ -53,6 +60,9 @@ namespace APP.ViewModels.Pages
                 repository.Delete(entity.DeviceId);
                 await unitOfWork.SaveChangesAsync();
 
+                // remove conmunication link in deviceManagement
+                deviceManagement.Remove(entity.DeviceId);
+
                 await LoadData();
             }
         }
@@ -62,16 +72,30 @@ namespace APP.ViewModels.Pages
         {
             var list = await repository.GetAllAsync();
             Items = new ObservableCollection<DeviceView>([.. list.Select(entity => new DeviceView(entity))]);
+
+            Task.Run(() =>
+            {
+                foreach (var item in Items)
+                {
+                    if (item.DeviceId is not null)
+                    {
+                        bool flag = deviceManagement.IsClientConnected(item.DeviceId.Value);
+                        item.Status = flag ? BaseStatusEnum.NORMAL : BaseStatusEnum.EXCEPTION;
+                    }
+                }
+            });
         }
 
         public override Task OnNavigatedFromAsync()
         {
+            deviceManagement.ChangeActionNotice -= (obj, param) => ChangeActionNotice(param.deviceId, param.status);
             return Task.CompletedTask;
         }
 
         public async override Task OnNavigatedToAsync()
         {
             await LoadData();
+            deviceManagement.ChangeActionNotice += (obj, param) => ChangeActionNotice(param.deviceId, param.status);
         }
 
         private async Task<bool> SubmitEvent(Device entity)
@@ -90,7 +114,26 @@ namespace APP.ViewModels.Pages
 
             await LoadData();
 
+            // refresh current conmunication link in deviceManagement
+
+            if (entity.Model == DeviceModelEnum.AUTO)
+            {
+                await deviceManagement.Submit(entity);
+            }
+            else
+            {
+                deviceManagement.Remove(entity.DeviceId);
+            }
+
             return true;
+        }
+
+        private void ChangeActionNotice(long deviceId, ConnectStatus status)
+        {
+            Task.Run(() => Items.Where(var => var.DeviceId == deviceId).GetFirstIfPresent(var =>
+            {
+                var.Status = ConnectStatus.CONNECTED == status ? BaseStatusEnum.NORMAL : BaseStatusEnum.EXCEPTION;
+            }));
         }
     }
 }

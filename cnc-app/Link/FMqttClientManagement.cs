@@ -8,12 +8,20 @@ namespace APP.Services
 {
     public class FMqttClientManagement(IUnitOfWork unitOfWork) : IDisposable
     {
-
+        // 状态处理
         private event EventHandler<(long linkId, ConnectStatus status)> _ChangeActionNotice = (sender, objetc) => { };
         public event EventHandler<(long linkId, ConnectStatus status)> ChangeActionNotice
         {
             add { _ChangeActionNotice += value; }
             remove { _ChangeActionNotice -= value; }
+        }
+
+        // 消息处理
+        private event EventHandler<(long linkId, string Topic, string Payload)> _MessageProcess = (sender, objetc) => { };
+        public event EventHandler<(long linkId, string Topic, string Payload)> MessageProcess
+        {
+            add => _MessageProcess += value;
+            remove => _MessageProcess -= value;
         }
 
         private readonly ConcurrentDictionary<long, FMqttClient> _clients = new();
@@ -27,15 +35,15 @@ namespace APP.Services
             FMqttClient? client = GenMqttClient(item);
             if (client is not null)
             {
-                return await this.Submit(client.GetKey(), client);
+                return await this.Submit(client);
             }
             return false;
         }
 
-        public async Task<bool> Submit(long linkId, FMqttClient client)
+        public async Task<bool> Submit(FMqttClient client)
         {
-            this.Remove(linkId);
-            return await Task.FromResult(_clients.TryAdd(linkId, client));
+            this.Remove(client.GetKey());
+            return await Task.FromResult(_clients.TryAdd(client.GetKey(), client));
         }
 
 
@@ -46,12 +54,30 @@ namespace APP.Services
             {
                 if (removedValue is not null)
                 {
-                    removedValue.ConnectionStatusChanged -= (linkId, status) => _ChangeActionNotice.Invoke(linkId, status);
+                    removedValue.ConnectionStatusChanged -= _ChangeActionNotice.Invoke;
+                    removedValue.MessageProcess -= _MessageProcess.Invoke;
                     _ = removedValue.Destory();
                     return true;
                 }
             }
             return false;
+        }
+
+        public async Task InitAsync()
+        {
+            var respository = unitOfWork.GetRepository<LinkMqtt>();
+            List<LinkMqtt> list = [.. await respository.GetAllAsync()];
+
+            foreach (var item in list) await Submit(item);
+        }
+
+        public void Dispose()
+        {
+            foreach (var key in _clients.Keys)
+            {
+                try { Remove(key); } catch { /* log if needed */ }
+            }
+            _clients.Clear();
         }
 
 
@@ -69,9 +95,10 @@ namespace APP.Services
                             password: item.Password,
                             keepAliveSeconds: item.KeepAlive);
 
-                client.ConnectionStatusChanged += (linkId, status) => _ChangeActionNotice.Invoke(linkId, status);
+                client.ConnectionStatusChanged += (sender, data) => _ChangeActionNotice.Invoke(sender, data);
+                client.MessageProcess += (sender, data) => _MessageProcess.Invoke(sender, data);
 
-                Task.Run(async () =>
+                Task.Delay(5000).ContinueWith(async (task) =>
                 {
                     await client.Init();
                     await client.Connect();
@@ -80,28 +107,6 @@ namespace APP.Services
                 return client;
             }
             return null;
-        }
-
-        public async Task InitAsync()
-        {
-            var respository = unitOfWork.GetRepository<LinkMqtt>();
-            List<LinkMqtt> list = [.. await respository.GetAllAsync()];
-
-            foreach (var item in list)
-            {
-                FMqttClient? client = GenMqttClient(item);
-                if (client != null) await Submit(client.GetKey(), client);
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (var key in _clients.Keys)
-            {
-                try { Remove(key); } catch { /* log if needed */ }
-            }
-
-            _clients.Clear();
         }
     }
 }

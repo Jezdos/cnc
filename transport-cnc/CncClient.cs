@@ -1,54 +1,80 @@
-﻿using HslCommunication;
-using HslCommunication.CNC.Fanuc;
-using log4net;
-using System.Text.Json;
-using transport_common;
-
-namespace transport_cnc
+﻿namespace transport_cnc
 {
-    public class CncClient(long deviceId, string server, int port, string path) : IDevice
+    using HslCommunication;
+    using HslCommunication.CNC.Fanuc;
+    using log4net;
+    using transport_common;
+    using transport_common.Command;
+
+    /// <summary>
+    /// Defines the <see cref="CncClient" />
+    /// </summary>
+    public class CncClient(long deviceId, string server, int port, string path, int interval) : IDevice(interval)
     {
         private readonly ILog logger = LogManager.GetLogger(nameof(CncClient));
 
         private FanucSeries0i? fanuc;
 
         public readonly long _deviceId = deviceId;
+
         public readonly string _server = server;
+
         public readonly int _port = port;
+
         public readonly string _path = path;
 
-
-        #region IConnectLifeCycle
-
+        /// <summary>
+        /// The InitAsync
+        /// </summary>
+        /// <returns>The <see cref="Task"/></returns>
         protected override Task InitAsync()
         {
-            if (fanuc != null) fanuc.ConnectClose();
+            if (fanuc != null) fanuc.ConnectServer();
             fanuc = new FanucSeries0i(_server, _port);
-            SetProgramPath();
+            // 设置默认路径
+            // SetProgramPath();
+            // 注册方法
+            RegisterCommandRouter();
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// The ConnectAsync
+        /// </summary>
+        /// <returns>The <see cref="Task"/></returns>
         protected override async Task ConnectAsync()
         {
             OperateResult connect = await fanuc.ConnectServerAsync();
             if (connect.IsSuccess) base.ChangeStatus(ConnectStatus.CONNECTED);
         }
 
+        /// <summary>
+        /// The DisconnectAsync
+        /// </summary>
+        /// <returns>The <see cref="Task"/></returns>
         protected override Task DisconnectAsync()
         {
             if (fanuc is not null) fanuc.ConnectClose();
             return Task.CompletedTask;
         }
 
-        public override void Dispose() { }
+        /// <summary>
+        /// The Dispose
+        /// </summary>
+        public override void Dispose()
+        {
+        }
 
-        #endregion
-
-        #region IDevice
-
+        /// <summary>
+        /// Gets the DeviceName
+        /// </summary>
         public override string DeviceName => "CNC";
 
-        public override async Task<string> Collect()
+        /// <summary>
+        /// The PollAsync
+        /// </summary>
+        /// <returns>The <see cref="Task{Dictionary{string, object}}"/></returns>
+        protected override async Task<Dictionary<string, object>> PollAsync()
         {
             Dictionary<string, object> dataMap = new Dictionary<string, object>();
             if (fanuc is not null)
@@ -56,7 +82,7 @@ namespace transport_cnc
                 OperateResult<FanucSysInfo> read1 = fanuc.ReadSysInfo();    // 系统信息
                 if (read1.IsSuccess)
                 {
-                    if(Status != ConnectStatus.CONNECTED) base.ChangeStatus(ConnectStatus.CONNECTED);
+                    if (Status != ConnectStatus.CONNECTED) base.ChangeStatus(ConnectStatus.CONNECTED);
                     dataMap.Add("SysInfo", read1.Content);
 
                     var tasks = new List<Task>  {
@@ -92,15 +118,15 @@ namespace transport_cnc
                     base.ChangeStatus(ConnectStatus.CONNECTING);
                 }
             }
-
-            string json = JsonSerializer.Serialize(dataMap);
-            return await Task.FromResult(json);
+            return dataMap;
         }
 
-        #endregion
-
-        #region function
-
+        /// <summary>
+        /// The WriteProcessFile
+        /// </summary>
+        /// <param name="programNumber">The programNumber<see cref="ushort"/></param>
+        /// <param name="fileName">The fileName<see cref="string"/></param>
+        /// <returns>The <see cref="Task{bool}"/></returns>
         public async Task<bool> WriteProcessFile(ushort programNumber, string fileName)
         {
             OperateResult<int> readResult = await fanuc.ReadProgramNumberAsync(); //当前程序号
@@ -117,6 +143,11 @@ namespace transport_cnc
             return false;
         }
 
+        /// <summary>
+        /// The DeleteFile
+        /// </summary>
+        /// <param name="fileName">The fileName<see cref="string"/></param>
+        /// <returns>The <see cref="bool"/></returns>
         private bool DeleteFile(string fileName)
         {
             OperateResult result = fanuc.DeleteFile(_path + fileName);
@@ -124,11 +155,19 @@ namespace transport_cnc
             return false;
         }
 
+        /// <summary>
+        /// The SetProgramPath
+        /// </summary>
         private void SetProgramPath()
         {
             fanuc.OperatePath = short.Parse(_path);
         }
 
+        /// <summary>
+        /// The SetCurrentProgram
+        /// </summary>
+        /// <param name="programNum">The programNum<see cref="ushort"/></param>
+        /// <returns>The <see cref="bool"/></returns>
         private bool SetCurrentProgram(ushort programNum)
         {
             OperateResult result = fanuc.SetCurrentProgram(programNum);
@@ -136,6 +175,11 @@ namespace transport_cnc
             return false;
         }
 
+        /// <summary>
+        /// The WriteProgram
+        /// </summary>
+        /// <param name="fileName">The fileName<see cref="string"/></param>
+        /// <returns>The <see cref="Task{bool}"/></returns>
         private async Task<bool> WriteProgram(string fileName)
         {
             OperateResult result = await fanuc.WriteProgramFileAsync(fileName, 512, _path);
@@ -143,6 +187,11 @@ namespace transport_cnc
             return false;
         }
 
+        /// <summary>
+        /// The StartProcess
+        /// </summary>
+        /// <param name="fileName">The fileName<see cref="string"/></param>
+        /// <returns>The <see cref="bool"/></returns>
         private bool StartProcess(string fileName)
         {
             OperateResult result = fanuc.StartProcessing();
@@ -150,12 +199,24 @@ namespace transport_cnc
             return false;
         }
 
+        /// <summary>
+        /// The GetKey
+        /// </summary>
+        /// <returns>The <see cref="long"/></returns>
         public override long GetKey()
         {
             return _deviceId;
         }
 
         // 统一处理结果的辅助方法
+
+        /// <summary>
+        /// The ProcessResult
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dataMap">The dataMap<see cref="Dictionary{string, object}"/></param>
+        /// <param name="key">The key<see cref="string"/></param>
+        /// <param name="result">The result<see cref="OperateResult{T}"/></param>
         private void ProcessResult<T>(Dictionary<string, object> dataMap, string key, OperateResult<T> result)
         {
             if (result.IsSuccess && result.Content is not null)
@@ -164,17 +225,41 @@ namespace transport_cnc
             }
         }
 
+        /// <summary>
+        /// The ProcessResult
+        /// </summary>
+        /// <typeparam name="T1"></typeparam>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="dataMap">The dataMap<see cref="Dictionary{string, object}"/></param>
+        /// <param name="key1">The key1<see cref="string"/></param>
+        /// <param name="key2">The key2<see cref="string"/></param>
+        /// <param name="result">The result<see cref="OperateResult{T1, T2}"/></param>
         private void ProcessResult<T1, T2>(Dictionary<string, object> dataMap, string key1, string key2, OperateResult<T1, T2> result)
         {
             if (result.IsSuccess)
             {
-                if(result.Content1 is not null) dataMap.Add(key1, result.Content1);
-                if(result.Content2 is not null) dataMap.Add(key1, result.Content2);
+                if (result.Content1 is not null) dataMap.Add(key1, result.Content1);
+                if (result.Content2 is not null) dataMap.Add(key1, result.Content2);
             }
         }
 
-        #endregion
+        /// <summary>
+        /// The RegisterCommandRouter
+        /// </summary>
+        protected override void RegisterCommandRouter()
+        {
+            base.RegisterHandler("STATUS_INFO", async parameters =>
+            {
+                // 实际设备控制逻辑
+                object data = await Poll();
+                return new CommandResponse { Data = data };
+            });
 
-
+            base.RegisterHandler("RESIGN_PROCESS", async parameters =>
+            {
+                // 实际设备控制逻辑
+                return new CommandResponse { StatusCode = 500, Message = "ERROR Method!" };
+            });
+        }
     }
 }

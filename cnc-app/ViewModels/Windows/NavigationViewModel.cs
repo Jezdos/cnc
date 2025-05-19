@@ -9,8 +9,9 @@ public partial class NavigationViewModel : ViewModel
     [ObservableProperty]
     private ObservableCollection<NavigationItem> _MenuItems = [
         new NavigationItem("Home", PackIconKind.Home.ToString(), typeof(HomeViewPage)),
-        new NavigationItem("Device", PackIconKind.Devices.ToString(), typeof(DeviceViewPage)),
-        new NavigationItem("Broker", PackIconKind.LinkVariant.ToString(), typeof(LinkViewPage)),
+        new NavigationItem("Device", PackIconKind.Apps.ToString(), typeof(DeviceViewPage)),
+        new NavigationItem("Broker", PackIconKind.ChevronDoubleUp.ToString(), typeof(LinkViewPage)),
+        new NavigationItem("Adaptor", PackIconKind.Link.ToString(), typeof(AdaptorViewPage)),
     ];
 }
 
